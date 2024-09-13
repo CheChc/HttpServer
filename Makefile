@@ -6,14 +6,23 @@ TARGET = server
 SRC = main.cpp ThreadPool.cpp HttpServer.cpp
 OBJ = $(SRC:.cpp=.o)
 
-all: $(TARGET)
+server: main.o HttpServer.o HttpHandler.o ThreadPool.o
+	g++ -std=c++11 -pthread -o server main.o HttpServer.o HttpHandler.o ThreadPool.o -lboost_system
 
-$(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJ) $(BOOSTFLAGS)
+main.o: main.cpp HttpServer.h
+	g++ -std=c++11 -pthread -c main.cpp
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+HttpServer.o: HttpServer.cpp HttpServer.h
+	g++ -std=c++11 -pthread -c HttpServer.cpp
+
+HttpHandler.o: HttpHandler.cpp HttpHandler.h
+	g++ -std=c++11 -pthread -c HttpHandler.cpp
+
+ThreadPool.o: ThreadPool.cpp ThreadPool.h
+	g++ -std=c++11 -pthread -c ThreadPool.cpp
 
 clean:
-	rm -f $(OBJ) $(TARGET)
+	rm -f *.o server
+
+
 
