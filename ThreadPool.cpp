@@ -1,33 +1,17 @@
 #include "ThreadPool.h"
 
-ThreadPool::ThreadPool(size_t numThreads) {
-    start(numThreads);
-}
-
-ThreadPool::~ThreadPool() {
-    stop();
-}
-
-void ThreadPool::enqueue(std::function<void()> task) {
-    {
-        std::unique_lock<std::mutex> lock(mEventMutex);
-        mTasks.emplace(std::move(task));
-    }
-    mEventVar.notify_one();
-}
-
-void ThreadPool::start(size_t numThreads) {
+ThreadPool::ThreadPool(size_t numThreads) : stop(false) {
     for (size_t i = 0; i < numThreads; ++i) {
-        mThreads.emplace_back([this] {
-            while (true) {
+        workers.emplace_back([this] {
+            for (;;) {
                 std::function<void()> task;
                 {
-                    std::unique_lock<std::mutex> lock(mEventMutex);
-                    mEventVar.wait(lock, [this] { return mStopping || !mTasks.empty(); });
-                    if (mStopping && mTasks.empty())
-                        break;
-                    task = std::move(mTasks.front());
-                    mTasks.pop();
+                    std::unique_lock<std::mutex> lock(this->queueMutex);
+                    this->condition.wait(lock, [this] { return this->stop || !this->tasks.empty(); });
+                    if (this->stop && this->tasks.empty())
+                        return;
+                    task = std::move(this->tasks.front());
+                    this->tasks.pop();
                 }
                 task();
             }
@@ -35,14 +19,12 @@ void ThreadPool::start(size_t numThreads) {
     }
 }
 
-void ThreadPool::stop() {
+ThreadPool::~ThreadPool() {
     {
-        std::unique_lock<std::mutex> lock(mEventMutex);
-        mStopping = true;
+        std::unique_lock<std::mutex> lock(queueMutex);
+        stop = true;
     }
-    mEventVar.notify_all();
-    for (auto& thread : mThreads) {
-        thread.join();
-    }
+    condition.notify_all();
+    for (std::thread &worker : workers)
+        worker.join();
 }
-

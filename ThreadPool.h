@@ -3,8 +3,8 @@
 
 #include <vector>
 #include <thread>
-#include <mutex>
 #include <queue>
+#include <mutex>
 #include <condition_variable>
 #include <functional>
 
@@ -12,19 +12,25 @@ class ThreadPool {
 public:
     ThreadPool(size_t numThreads);
     ~ThreadPool();
-    
-    void enqueue(std::function<void()> task);
+
+    template<class F>
+    void enqueue(F&& f);
 
 private:
-    std::vector<std::thread> mThreads;
-    std::condition_variable mEventVar;
-    std::mutex mEventMutex;
-    bool mStopping = false;
-    std::queue<std::function<void()>> mTasks;
-
-    void start(size_t numThreads);
-    void stop();
+    std::vector<std::thread> workers;
+    std::queue<std::function<void()>> tasks;
+    std::mutex queueMutex;
+    std::condition_variable condition;
+    bool stop;
 };
 
-#endif // THREADPOOL_H
+template<class F>
+void ThreadPool::enqueue(F&& f) {
+    {
+        std::unique_lock<std::mutex> lock(queueMutex);
+        tasks.emplace(std::forward<F>(f));
+    }
+    condition.notify_one();
+}
 
+#endif // THREADPOOL_H

@@ -1,43 +1,67 @@
 #include "HttpHandler.h"
 #include <iostream>
-#include <sstream>
-#include <fstream>
+#include <boost/asio.hpp>
+#include "Logger.h"  // 用于记录请求日志
 
-HttpHandler::HttpHandler(std::shared_ptr<tcp::socket> socket) : socket_(socket) {}
-
-std::string HttpHandler::readRequest() {
-    boost::system::error_code error;
-    char data[1024];
-    size_t length = socket_->read_some(boost::asio::buffer(data), error);
-
-    if (error == boost::asio::error::eof) {
-        return ""; // Connection closed
-    } else if (error) {
-        throw boost::system::system_error(error); // Other error
-    }
-
-    return std::string(data, length);
-}
+HttpHandler::HttpHandler(std::shared_ptr<boost::asio::ip::tcp::socket> socket)
+    : socket_(socket) {}
+Logger logger("./log/1.txt");
 
 void HttpHandler::processRequest() {
-    std::string request = readRequest();
-    
-    if (request.empty()) return;
+    try {
+        // 读取请求数据
+        std::string request = readRequest();
+        
+        if (request.empty()) return;
 
-    // Parse the request (e.g., "GET /index.html HTTP/1.1")
-    std::istringstream requestStream(request);
-    std::string method, url, httpVersion;
-    requestStream >> method >> url >> httpVersion;
+        // 记录请求到日志
+        logger.log("Received request:\n" + request);
+        std::istringstream requestStream(request);
+        std::string method, url, httpVersion;
+        requestStream >> method >> url >> httpVersion;
 
-    if (method == "GET") {
-        handleGetRequest(url);
-    } else if (method == "POST") {
+        if (method == "GET") {
+            handleGetRequest(url);
+     } else if (method == "POST") {
         // Extract body after the header
         std::string body = request.substr(request.find("\r\n\r\n") + 4);
         handlePostRequest(url, body);
     }
+        // 处理请求并生成响应
+        std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nHello, World!";
+        
+        // 发送响应
+        sendResponse(response);
+        
+        // 记录响应到日志
+        logger.log("Sent response:\n" + response);
+    } catch (std::exception& e) {
+        logger.log("Error processing request: " + std::string(e.what()));
+    }
 }
 
+std::string HttpHandler::readRequest() {
+    boost::asio::streambuf buffer;
+    boost::system::error_code error;
+    
+    // 读取 socket 中的请求数据
+    boost::asio::read_until(*socket_, buffer, "\r\n", error);
+
+    if (error && error != boost::asio::error::eof) {
+        throw boost::system::system_error(error);
+    }
+
+    // 将请求数据转换为字符串
+    std::istream requestStream(&buffer);
+    std::string request;
+    std::getline(requestStream, request);
+
+    return request;
+}
+
+void HttpHandler::sendResponse(const std::string& response) {
+    boost::asio::write(*socket_, boost::asio::buffer(response));
+}
 void HttpHandler::handleGetRequest(const std::string& url) {
     std::string htmlContent;
 

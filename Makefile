@@ -2,27 +2,25 @@ CXX = g++
 CXXFLAGS = -std=c++11 -pthread
 BOOSTFLAGS = -lboost_system -lboost_thread
 
-TARGET = server
-SRC = main.cpp ThreadPool.cpp HttpServer.cpp
-OBJ = $(SRC:.cpp=.o)
+all: server
 
-server: main.o HttpServer.o HttpHandler.o ThreadPool.o
-	g++ -std=c++11 -pthread -o server main.o HttpServer.o HttpHandler.o ThreadPool.o -lboost_system
+server: main.o HttpServer.o HttpHandler.o ThreadPool.o Logger.o
+	$(CXX) $(CXXFLAGS) $(BOOSTFLAGS) -o server main.o HttpServer.o HttpHandler.o ThreadPool.o Logger.o
 
-main.o: main.cpp HttpServer.h
-	g++ -std=c++11 -pthread -c main.cpp
+main.o: main.cpp
+	$(CXX) $(CXXFLAGS) $(BOOSTFLAGS)  -c main.cpp
 
-HttpServer.o: HttpServer.cpp HttpServer.h
-	g++ -std=c++11 -pthread -c HttpServer.cpp
+HttpServer.o: HttpServer.cpp
+	$(CXX) $(CXXFLAGS) $(BOOSTFLAGS) -c HttpServer.cpp
 
-HttpHandler.o: HttpHandler.cpp HttpHandler.h
-	g++ -std=c++11 -pthread -c HttpHandler.cpp
+HttpHandler.o: HttpHandler.cpp
+	$(CXX) -c HttpHandler.cpp
 
-ThreadPool.o: ThreadPool.cpp ThreadPool.h
-	g++ -std=c++11 -pthread -c ThreadPool.cpp
+ThreadPool.o: ThreadPool.cpp
+	$(CXX) $(CXXFLAGS) $(BOOSTFLAGS) -c ThreadPool.cpp
+
+Logger.o: Logger.cpp
+	$(CXX) $(CXXFLAGS) $(BOOSTFLAGS) -c Logger.cpp
 
 clean:
 	rm -f *.o server
-
-
-
