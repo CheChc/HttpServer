@@ -1,26 +1,33 @@
+# Compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++11 -pthread
-BOOSTFLAGS = -lboost_system -lboost_thread
+CXXFLAGS = -std=c++11 -pthread -Wall
 
-all: server
+# Boost libraries
+LIBS = -lboost_system -lboost_thread
 
-server: main.o HttpServer.o HttpHandler.o ThreadPool.o Logger.o
-	$(CXX) $(CXXFLAGS) $(BOOSTFLAGS) -o server main.o HttpServer.o HttpHandler.o ThreadPool.o Logger.o
+# Source files
+SRCS = main.cpp HttpHandler.cpp HttpServer.cpp GetRequestHandler.cpp PostRequestHandler.cpp ThreadPool.cpp Logger.cpp
 
-main.o: main.cpp
-	$(CXX) $(CXXFLAGS) $(BOOSTFLAGS)  -c main.cpp
+# Object files
+OBJS = $(SRCS:.cpp=.o)
 
-HttpServer.o: HttpServer.cpp
-	$(CXX) $(CXXFLAGS) $(BOOSTFLAGS) -c HttpServer.cpp
+# Executable
+TARGET = server
 
-HttpHandler.o: HttpHandler.cpp
-	$(CXX) -c HttpHandler.cpp
+# Default rule to build the executable
+all: $(TARGET)
 
-ThreadPool.o: ThreadPool.cpp
-	$(CXX) $(CXXFLAGS) $(BOOSTFLAGS) -c ThreadPool.cpp
+# Rule to build the target
+$(TARGET): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS) $(LIBS)
 
-Logger.o: Logger.cpp
-	$(CXX) $(CXXFLAGS) $(BOOSTFLAGS) -c Logger.cpp
+# Rule to compile each source file into an object file
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# Clean up the build
 clean:
-	rm -f *.o server
+	rm -f $(OBJS) $(TARGET)
+
+# Phony targets
+.PHONY: all clean
