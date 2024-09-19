@@ -205,3 +205,27 @@ Received request:
 GET /contact HTTP/1.1
 Received request:
 GET /favicon.ico HTTP/1.1
+Received request:
+GET / HTTP/1.1
+Received request:
+GET /favicon.ico HTTP/1.1
+Received request:
+GET /about HTTP/1.1
+Received request:
+GET /favicon.ico HTTP/1.1
+Received request:
+GET /contact HTTP/1.1
+Received request:
+GET /favicon.ico HTTP/1.1
+Received request:
+GET / HTTP/1.1
+Received request:
+GET /favicon.ico HTTP/1.1
+Received request:
+GET /about HTTP/1.1
+Received request:
+GET /favicon.ico HTTP/1.1
+Received request:
+GET /archive HTTP/1.1
+Received request:
+GET /favicon.ico HTTP/1.1
