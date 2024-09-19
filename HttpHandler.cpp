@@ -7,7 +7,7 @@
 HttpHandler::HttpHandler(std::shared_ptr<boost::asio::ip::tcp::socket> socket)
     : socket_(socket) {}
 
-Logger logger("./log/1.txt");
+Logger logger("./log/log.txt");
 
 void HttpHandler::processRequest() {
     try {
