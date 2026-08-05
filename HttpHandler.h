@@ -7,15 +7,17 @@
 #include "GetRequestHandler.h"
 #include "PostRequestHandler.h"
 
+class Logger;
+
 class HttpHandler {
 public:
-    HttpHandler(std::shared_ptr<boost::asio::ip::tcp::socket> socket);
+    HttpHandler(std::shared_ptr<boost::asio::ip::tcp::socket> socket, Logger& logger);
     void processRequest();
 
 private:
     std::shared_ptr<boost::asio::ip::tcp::socket> socket_;
+    Logger& logger_;
     std::string readRequest();
-    void sendResponse(const std::string& response);
 };
 
 #endif

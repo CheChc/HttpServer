@@ -6,8 +6,6 @@
 #include <boost/asio.hpp>
 #include <memory>
 
-using boost::asio::ip::tcp;
-
 class HttpServer {
 public:
     HttpServer(boost::asio::io_context& ioContext, unsigned short port, size_t threadPoolSize);
@@ -15,7 +13,7 @@ public:
     void run();
 
 private:
-    tcp::acceptor acceptor_;
+    boost::asio::ip::tcp::acceptor acceptor_;
     size_t threadPoolSize_;
 };
 

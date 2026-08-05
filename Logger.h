@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <mutex>
 
 class Logger {
 public:
@@ -13,6 +14,7 @@ public:
 
 private:
     std::ofstream logFile_;
+    std::mutex mutex_;
 };
 
 #endif // LOGGER_H

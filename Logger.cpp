@@ -14,6 +14,7 @@ Logger::~Logger() {
 }
 
 void Logger::log(const std::string& message) {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (logFile_.is_open()) {
         logFile_ << message << std::endl;
     }

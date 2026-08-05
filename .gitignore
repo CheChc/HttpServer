@@ -1,0 +1,13 @@
+# 构建产物
+*.o
+*.d
+server
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# 日志
+log/
+*.log

@@ -1,9 +1,12 @@
 #include "GetRequestHandler.h"
+#include "HttpUtil.h"
 #include <fstream>
 #include <sstream>
 #include <boost/asio.hpp>
 
-GetRequestHandler::GetRequestHandler(std::shared_ptr<boost::asio::ip::tcp::socket> socket)
+using boost::asio::ip::tcp;
+
+GetRequestHandler::GetRequestHandler(std::shared_ptr<tcp::socket> socket)
     : socket_(socket) {}
 
 void GetRequestHandler::handleGetRequest(const std::string& url) {
@@ -19,10 +22,11 @@ void GetRequestHandler::handleGetRequest(const std::string& url) {
     } else if (url == "/services") {
         htmlContent = readHtmlFromFile("./templates/services.html");
     } else {
-        htmlContent = "<html><body><h1>404 Not Found</h1></body></html>";
+        boost::asio::write(*socket_, boost::asio::buffer(httputil::notFound()));
+        return;
     }
 
-    std::string response = generateResponse(htmlContent);
+    std::string response = httputil::makeResponse(200, "OK", "text/html", htmlContent);
     boost::asio::write(*socket_, boost::asio::buffer(response));
 }
 
@@ -35,13 +39,4 @@ std::string GetRequestHandler::readHtmlFromFile(const std::string& filePath) {
     std::stringstream buffer;
     buffer << htmlFile.rdbuf();
     return buffer.str();
-}
-
-std::string GetRequestHandler::generateResponse(const std::string& body) {
-    return
-        "HTTP/1.1 200 OK\r\n"
-        "Content-Type: text/html\r\n"
-        "Content-Length: " + std::to_string(body.size()) + "\r\n"
-        "\r\n" +
-        body;
 }

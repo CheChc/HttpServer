@@ -2,6 +2,7 @@
 #define POSTREQUESTHANDLER_H
 
 #include <string>
+#include <memory>
 #include <boost/asio.hpp>
 
 class PostRequestHandler {
@@ -11,7 +12,6 @@ public:
 
 private:
     std::shared_ptr<boost::asio::ip::tcp::socket> socket_;
-    std::string generateResponse(const std::string& body);
 };
 
 #endif
